@@ -6,7 +6,7 @@ on:
 #     - cron:  '30 5,17 * * *'
   push:
     branches:
-      - master
+      - main
 
 jobs:
   periodic_health_check:
