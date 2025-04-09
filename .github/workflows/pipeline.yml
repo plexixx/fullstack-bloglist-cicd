@@ -25,6 +25,11 @@ jobs:
         run: npm run lint
       - name: e2e tests
         run: npm run test:e2e
+        env:
+          PORT: ${{ env.PORT }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          TEST_MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
+      
 
   trigger_deployment:
     name: Trigger deployment to Render
