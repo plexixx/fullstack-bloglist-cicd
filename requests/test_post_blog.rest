@@ -1,0 +1,28 @@
+GET http://localhost:3001/api/blogs HTTP/1.1
+
+
+###
+
+POST http://localhost:3001/api/blogs HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjY2NzFlMWQ1MDMzMzQ4ODI2YzU0NjgxYiIsImlhdCI6MTcxODg3NDEzOX0.M8N-8I2P0cxg5_aMq_4N5QW64Tmm6BU_QQC2nAQmUpg
+
+{
+    "title": "Harry Porter",
+    "author": "J.K. Rowling",
+    "url": "www.harryporter.com",
+    "likes": 100
+}
+
+###
+
+POST http://localhost:3001/api/blogs HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjY2NzFlMWQ1MDMzMzQ4ODI2YzU0NjgxYiIsImlhdCI6MTcxODg3Mjg4M30.u_3Ern3sq3Z6rNTBNOkAbbApHUJQOBp0IMyifkMzzR0
+
+{
+    "title": "Travel to the moon",
+    "author": "NASA",
+    "url": "www.nasa.com",
+    "likes": 1000
+}
