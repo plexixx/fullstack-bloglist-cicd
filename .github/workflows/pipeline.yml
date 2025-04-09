@@ -28,19 +28,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run linters
-        run: |
-            cd server
-            npm run lint
-            cd ..
-            cd client
-            npm run lint
-            cd ..
-            npm run lint
-      - name: Run test server
-        run: |
-            cd server
-            npm run start:test
-            cd ..
+        run: npm run lint
       - name: e2e tests
         run: npm run test:e2e
 
