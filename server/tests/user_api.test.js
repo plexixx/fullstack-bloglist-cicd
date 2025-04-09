@@ -72,7 +72,7 @@ describe('when there is initially one user in db', () => {
       .post('/api/users')
       .send(userWithShortUsername)
       .expect(400)
-    
+
     await api
       .post('/api/users')
       .send(userWithShortPassword)

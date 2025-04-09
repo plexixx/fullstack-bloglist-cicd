@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:3001/api/blogs'
+const baseUrl = `${process.env.SERVER_URL}/api/blogs`
 
 let token = null
 
