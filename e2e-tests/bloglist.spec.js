@@ -1,10 +1,9 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
 const { loginWith, createBlog } = require('./helper')
-const { create } = require('domain')
 
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
-    await request.post('http:localhost:3001/api/testing/reset')
+    await request.post('http://localhost:3001/api/testing/reset')
     await request.post('http://localhost:3001/api/users', {
       data: {
         name: 'Matti Luukkainen',
@@ -19,7 +18,7 @@ describe('Blog app', () => {
         password: 'admin'
       }
     })
-    await page.goto('http://localhost:5173')
+    await page.goto('')
   })
 
   test('Login form is shown', async ({ page }) => {
@@ -34,7 +33,7 @@ describe('Blog app', () => {
     })
 
     test('fails with wrong credentials', async ({ page }) => {
-      await loginWith(page, 'root', 'salainen')
+      await loginWith(page, 'root', 'root')
       const errorDiv = await page.locator('.error')
       await expect(errorDiv).toContainText('wrong username or password')
       await expect(errorDiv).toHaveCSS('border-style', 'solid')
@@ -55,63 +54,69 @@ describe('Blog app', () => {
       await expect(successDiv).toContainText('a new blog Test title by Test author added')
       await expect(successDiv).toHaveCSS('border-style', 'solid')
       await expect(successDiv).toHaveCSS('color', 'rgb(0, 128, 0)')
-      const whenHiddenDiv = await page.locator('.whenHidden')
-      await expect(whenHiddenDiv).toContainText('Test title')
-      await expect(whenHiddenDiv).toContainText('Test author')
+      const blogDiv = await page.locator('.blog').filter({ hasText: 'Test title' }).first()
+      await expect(blogDiv).toContainText('Test title')
+      await expect(blogDiv).toContainText('Test author')
     })
 
     test('a blog can be liked', async ({ page }) => {
       await createBlog(page, 'Test title', 'Test author', 'www.testurl.com')
-      await page.getByRole('button', { name: 'view' }).click()
-      await expect(page.getByText('likes 0')).toBeVisible()
-      await page.getByRole('button', { name: 'like' }).click()
-      await expect(page.getByText('likes 1')).toBeVisible()
+      const blogDiv = await page.locator('.blog').filter({ hasText: 'Test title' }).first()
+      await blogDiv.getByRole('button', { name: 'view' }).click()
+      await expect(blogDiv.getByText('likes 0')).toBeVisible()
+      await blogDiv.getByRole('button', { name: 'like' }).click()
+      await expect(blogDiv.getByText('likes 1')).toBeVisible()
     })
 
     test('a blog can be deleted', async ({ page }) => {
       await createBlog(page, 'Test title', 'Test author', 'www.testurl.com')
-      await page.getByRole('button', { name: 'view' }).click()
+      const blogDiv = await page.locator('.blog').filter({ hasText: 'Test title' }).first()
+      await blogDiv.getByRole('button', { name: 'view' }).click()
       page.on('dialog', dialog => dialog.accept())
-      await page.getByRole('button', { name: 'remove' }).click()
+      await blogDiv.getByRole('button', { name: 'remove' }).click()
       await page.reload()
-      await expect(page.getByText('Test title')).not.toBeVisible()
-      await expect(page.getByText('Test author')).not.toBeVisible()
+      await expect(page.locator('.blog').filter({ hasText: 'Test title' })).not.toBeVisible()
     })
 
     test('only the user who created a blog can delete it', async ({ page }) => {
       await createBlog(page, 'Test title', 'Test author', 'www.testurl.com')
+      const blogDiv = await page.locator('.blog').filter({ hasText: 'Test title' }).first()
+      await blogDiv.getByRole('button', { name: 'view' }).click()
       await page.getByRole('button', { name: 'logout' }).click()
       await loginWith(page, 'admin', 'admin')
-      await page.getByRole('button', { name: 'view' }).click()
-      await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible()
+      await blogDiv.getByRole('button', { name: 'view' }).click()
+      await expect(blogDiv.getByRole('button', { name: 'remove' })).not.toBeVisible()
     })
 
     test('blogs are ordered by likes', async ({ page }) => {
       await createBlog(page, 'Test title 1', 'Test author 1', 'www.testurl1.com')
       await createBlog(page, 'Test title 2', 'Test author 2', 'www.testurl2.com')
       await createBlog(page, 'Test title 3', 'Test author 3', 'www.testurl3.com')
-      const blog1 = page.locator('.blog').filter({ hasText: 'Test title 1' })
-      const blog2 = page.locator('.blog').filter({ hasText: 'Test title 2' })
-      const blog3 = page.locator('.blog').filter({ hasText: 'Test title 3' })
+
+      const blog1 = page.locator('.blog').filter({ hasText: 'Test title 1' }).first()
+      const blog2 = page.locator('.blog').filter({ hasText: 'Test title 2' }).first()
+      const blog3 = page.locator('.blog').filter({ hasText: 'Test title 3' }).first()
 
       await blog1.getByRole('button', { name: 'view' }).click()
       await blog2.getByRole('button', { name: 'view' }).click()
       await blog3.getByRole('button', { name: 'view' }).click()
 
-      await blog3.getByRole('button', { name: 'like' }).click()
-      await blog3.getByText('likes 1').waitFor()
-      await blog3.getByRole('button', { name: 'like' }).click()
-      await blog3.getByText('likes 2').waitFor()
       await blog2.getByRole('button', { name: 'like' }).click()
-      await blog2.getByText('likes 1').waitFor()
+      await blog2.getByRole('button', { name: 'like' }).click()
+      await blog3.getByRole('button', { name: 'like' }).click()
 
-      expect(blog1).toContainText('likes 0')
-      expect(blog2).toContainText('likes 1')
-      expect(blog3).toContainText('likes 2')
+      await page.reload()
+      await page.waitForLoadState('networkidle')
 
-      expect(page.locator('.blog').nth(0)).toContainText('Test title 3')
-      expect(page.locator('.blog').nth(1)).toContainText('Test title 2')
-      expect(page.locator('.blog').nth(2)).toContainText('Test title 1')
+      const blogs = await page.locator('.blog').all()
+      const blogTexts = await Promise.all(blogs.map(async blog => {
+        const text = await blog.textContent()
+        return text
+      }))
+
+      expect(blogTexts[0]).toContain('Test title 2') // 2 likes
+      expect(blogTexts[1]).toContain('Test title 3') // 1 like
+      expect(blogTexts[2]).toContain('Test title 1') // 0 likes
     })
   })
 })

@@ -1,6 +1,2 @@
-dist/
-node_modules/
-test-results/
-
+node_modules
 .env
-

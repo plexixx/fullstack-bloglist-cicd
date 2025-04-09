@@ -19,7 +19,8 @@ beforeEach(async () => {
     .post('/api/login')
     .send({ username: 'root', password: 'sekret' })
     .expect(200)
-  header = { 'Authorization': `Bearer ${response.body.token}` }
+  token = response.body.token
+  header = { 'Authorization': `Bearer ${token}` }
 
   await Blog.deleteMany({})
   await api
@@ -66,7 +67,7 @@ describe('when there is initially some blogs saved', () => {
       const newBlog = {
         title: crypto.randomBytes(20).toString('hex'),
         author: crypto.randomBytes(20).toString('hex'),
-        url: 'http://'.concat(crypto.randomBytes(20).toString('hex'), '.com'),
+        url: "http://".concat(crypto.randomBytes(20).toString('hex'), ".com"),
         likes: Math.floor(Math.random() * 100)
       }
       await api
@@ -75,7 +76,7 @@ describe('when there is initially some blogs saved', () => {
         .set(header)
         .expect(201)
         .expect('Content-Type', /application\/json/)
-
+        
       const response = await api.get('/api/blogs').expect(200)
       const lastBlog = response.body[response.body.length - 1]
       assert.strictEqual(lastBlog.title, newBlog.title)
@@ -83,12 +84,12 @@ describe('when there is initially some blogs saved', () => {
       assert.strictEqual(lastBlog.url, newBlog.url)
       assert.strictEqual(lastBlog.likes, newBlog.likes)
     })
-
+  
     test('if the likes property is missing from the request, it will default to the value 0', async () => {
       const newBlog = {
         title: crypto.randomBytes(20).toString('hex'),
         author: crypto.randomBytes(20).toString('hex'),
-        url: 'http://'.concat(crypto.randomBytes(20).toString('hex'), '.com')
+        url: "http://".concat(crypto.randomBytes(20).toString('hex'), ".com")
       }
       await api
         .post('/api/blogs')
@@ -96,22 +97,22 @@ describe('when there is initially some blogs saved', () => {
         .expect(201)
         .set(header)
         .expect('Content-Type', /application\/json/)
-
+    
       const response = await api.get('/api/blogs').expect(200)
       const lastBlog = response.body[response.body.length - 1]
       assert.strictEqual(lastBlog.likes, 0)
     })
-
+    
     test('if the title and url properties are missing from the request data, \
       the backend responds to the request with the status code 400 Bad Request', async () => {
       const blogWithoutTitle = {
         author: crypto.randomBytes(20).toString('hex'),
-        url: 'http://'.concat(crypto.randomBytes(20).toString('hex'), '.com')
+        url: "http://".concat(crypto.randomBytes(20).toString('hex'), ".com")
       }
       const blogWithoutUrl = {
         title: crypto.randomBytes(20).toString('hex'),
       }
-
+      
       await api
         .post('/api/blogs')
         .send(blogWithoutTitle)
@@ -124,20 +125,20 @@ describe('when there is initially some blogs saved', () => {
         .set(header)
     })
   })
-
+  
   describe('deletion of a blog', () => {
     test('succeeds with status code 204 if id is valid', async () => {
       const blogsAtStart = await helper.blogsInDb()
       const blogToDelete = blogsAtStart[0]
       console.log('blogToDelete:', blogToDelete)
-
+  
       await api
         .delete(`/api/blogs/${blogToDelete.id}`)
         .set(header)
         .expect(204)
-
+  
       const blogsAtEnd = await helper.blogsInDb()
-
+  
       assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
     })
   })
